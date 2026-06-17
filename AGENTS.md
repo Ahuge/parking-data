@@ -38,6 +38,10 @@ data/
 Every scraper exports a `Scraper` object with `{ provider: string, scrape(): Promise<ScrapeResult> }`.
 Register new scrapers in `src/scrapers/index.ts`.
 
+## Conventions
+- **Commit discipline**: Every logical change gets its own commit. No staging unrelated files. Commits are frequent and atomic — each one compiles, passes tests, and represents a single coherent change. Squash/WIP commits are forbidden.
+- **No backend, no database, no auth**: Static export only.
+
 ## Key Commands
 - `npm run scrape` — Run full pipeline, output to stdout + `/tmp/parking-scrape.log`
 - `npm test` — Run tests
