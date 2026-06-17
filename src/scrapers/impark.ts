@@ -142,11 +142,54 @@ function extractProductName(html: string): string | null {
   return m ? m[1].trim() : null;
 }
 
+function extractProductAddress(html: string): string | null {
+  const m = html.match(/Address:\s*([^<]+?)<\//i);
+  return m ? m[1].trim() : null;
+}
+
 function guessHours(): Record<string, { open: string; close: string }> {
   const days = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   const hours: Record<string, { open: string; close: string }> = {};
   for (const d of days) hours[d] = { open: "06:00", close: "23:00" };
   return hours;
+}
+
+// Check if slug contains a street number that conflicts with OSM's address number
+function slugNumbersConflict(slug: string, osm: OSMLot): boolean {
+  const slugNums = slug.match(/\d{3,}/g);
+  if (!slugNums) return false;
+  const osmText = osm.address + " " + osm.name;
+  const osmNums = osmText.match(/\d{3,}/g);
+  if (!osmNums) return false;
+  return !slugNums.some((n) => osmNums.includes(n));
+}
+
+function isVancouverSlug(slug: string): boolean {
+  const vanKeywords = new Set([
+    "vancouver", "burnaby", "richmond", "surrey", "langley", "delta",
+    "coquitlam", "port-moody", "port-coquitlam", "new-westminster",
+    "north-vancouver", "west-vancouver",
+    "granville", "georgia", "burrard", "howe", "thurlow", "hornby",
+    "robson", "denman", "davie", "alberni", "nelson", "smithe",
+    "helmcken", "dunsmuir", "pender", "cordova", "hastings",
+    "broadway", "kingsway", "oak", "cambie", "main", "fraser",
+    "knight", "victoria", "renfrew", "rupert", "gilmore", "willingdon",
+    "gilford", "marinaside", "aquarius", "water", "carroll", "richards",
+    "seymour", "hamilton", "beatty", "abbott", "gastown", "yaletown",
+    "coal-harbour", "false-creek", "fairview", "mount-pleasant",
+    "kitsilano", "point-grey", "dunbar", "kerrisdale", "marpole",
+    "strathcona", "west-end", "river-rock", "scott-road", "brownsville",
+    "annacis", "tilbury", "ladner", "tsawwassen", "steveston",
+    "lions-gate", "ironworkers", "patullo", "knight-street",
+    "granville-island", "science-world", "bc-place", "rogers-arena",
+    "stanley-park", "queen-elizabeth", "van-dusen", "u-b-c", "sfu",
+    "marine-drive", "kingsway", "lougheed", "barnet", "hastings-st",
+  ]);
+  const slugLower = slug.toLowerCase().replace(/[^a-z0-9\s-]/g, "");
+  for (const kw of vanKeywords) {
+    if (slugLower.includes(kw)) return true;
+  }
+  return false;
 }
 
 // Enhanced matching: find the best sitemap slug for an OSM lot
@@ -182,7 +225,7 @@ function findBestSlug(osm: OSMLot, allSlugs: Map<string, string>): string | null
     const words = [...new Set(cleaned.split(/\s+/).filter((w) => w.length >= 3 && !["the", "and", "for"].includes(w)))];
     if (words.length > 0) {
       for (const [slug] of allSlugs) {
-        if (words.every((w) => slug.includes(w))) return slug;
+        if (words.every((w) => slug.includes(w)) && !slugNumbersConflict(slug, osm)) return slug;
       }
     }
   }
@@ -269,6 +312,7 @@ export const imparkScraper: Scraper = {
       }
 
       const productName = extractProductName(html) || slug;
+      const productAddress = extractProductAddress(html);
       const rates: RawLot["rates"] = [];
       if (hourlyRate) rates.push({ type: "hourly", label: "Hourly", amount: hourlyRate, hourlyRate });
       if (monthlyPrice) rates.push({ type: "flat", label: "Monthly", amount: monthlyPrice });
@@ -277,7 +321,7 @@ export const imparkScraper: Scraper = {
         id: `impark-${slug}`,
         provider: "impark",
         name: productName,
-        address: osm.address || productName,
+        address: productAddress || osm.address || productName,
         lat: osm.lat,
         lng: osm.lng,
         rates,
@@ -288,12 +332,13 @@ export const imparkScraper: Scraper = {
       console.log(`[impark] ✓ ${productName} — $${hourlyRate}/hr`);
     }
 
-    // Phase 2: Reverse matching — for remaining OSM lots, try keyword-based slug→OSM matching
+    // Phase 2: Reverse matching — for remaining OSM lots, try keyword-based Vancouver slug→OSM matching
     const remainingLots = osmLots.filter((l) => !lots.some((r) => r.lat === l.lat && r.lng === l.lng));
     if (remainingLots.length > 0) {
       console.log(`[impark] ${remainingLots.length} OSM lots still unmatched — trying reverse keyword matching...`);
       for (const [slug] of allSlugs) {
         if (usedSlugs.has(slug)) continue;
+        if (!isVancouverSlug(slug)) continue;
         const osmMatch = findOsmForSlug(slug, remainingLots);
         if (!osmMatch) continue;
 
@@ -313,6 +358,7 @@ export const imparkScraper: Scraper = {
         if (!hourlyRate && !monthlyPrice) continue;
 
         const productName = extractProductName(html) || slug;
+        const productAddress = extractProductAddress(html);
         const rates: RawLot["rates"] = [];
         if (hourlyRate) rates.push({ type: "hourly", label: "Hourly", amount: hourlyRate, hourlyRate });
         if (monthlyPrice) rates.push({ type: "flat", label: "Monthly", amount: monthlyPrice });
@@ -321,7 +367,7 @@ export const imparkScraper: Scraper = {
           id: `impark-${slug}`,
           provider: "impark",
           name: productName,
-          address: osmMatch.address || productName,
+          address: productAddress || osmMatch.address || productName,
           lat: osmMatch.lat,
           lng: osmMatch.lng,
           rates,
@@ -349,33 +395,6 @@ export const imparkScraper: Scraper = {
     lots.push(...deduped);
 
     // Phase 3: Identify unmatched Vancouver-area slugs for future mapping
-    const vanKeywords = new Set([
-      "vancouver", "burnaby", "richmond", "surrey", "langley", "delta",
-      "coquitlam", "port-moody", "port-coquitlam", "new-westminster",
-      "north-vancouver", "west-vancouver",
-      "granville", "georgia", "burrard", "howe", "thurlow", "hornby",
-      "robson", "denman", "davie", "alberni", "nelson", "smithe",
-      "helmcken", "dunsmuir", "pender", "cordova", "hastings",
-      "broadway", "kingsway", "oak", "cambie", "main", "fraser",
-      "knight", "victoria", "renfrew", "rupert", "gilmore", "willingdon",
-      "gilford", "marinaside", "aquarius", "water", "carroll", "richards",
-      "seymour", "hamilton", "beatty", "abbott", "gastown", "yaletown",
-      "coal-harbour", "false-creek", "fairview", "mount-pleasant",
-      "kitsilano", "point-grey", "dunbar", "kerrisdale", "marpole",
-      "strathcona", "west-end", "river-rock", "scott-road", "brownsville",
-      "annacis", "tilbury", "ladner", "tsawwassen", "steveston",
-      "lions-gate", "ironworkers", "patullo", "knight-street",
-      "granville-island", "science-world", "bc-place", "rogers-arena",
-      "stanley-park", "queen-elizabeth", "van-dusen", "u-b-c", "sfu",
-      "marine-drive", "kingsway", "lougheed", "barnet", "hastings-st",
-    ]);
-    function isVancouverSlug(slug: string): boolean {
-      const slugLower = slug.toLowerCase().replace(/[^a-z0-9\s-]/g, "");
-      for (const kw of vanKeywords) {
-        if (slugLower.includes(kw)) return true;
-      }
-      return false;
-    }
     const unmatchedVanSlugs: string[] = [];
     for (const [slug] of allSlugs) {
       if (!usedSlugs.has(slug) && isVancouverSlug(slug)) {
