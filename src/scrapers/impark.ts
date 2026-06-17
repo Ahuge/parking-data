@@ -121,16 +121,21 @@ function extractPricing(html: string): { hourlyRate: number | null; monthlyPrice
   if (ldMatch) {
     try {
       const ld = JSON.parse(ldMatch[1]);
-      const offers = ld.offers as Record<string, unknown> | undefined;
-      if (offers) {
-        const priceSpec = offers.priceSpecification as Record<string, unknown>[] | undefined;
-        if (priceSpec && priceSpec.length > 0) {
-          monthlyPrice = parseFloat(priceSpec[0].price as string) || null;
+      const raw = ld.offers;
+      const offersArr = Array.isArray(raw) ? raw : [raw];
+      for (const offer of offersArr) {
+        if (!offer) continue;
+        const ps = offer.priceSpecification;
+        const specs = Array.isArray(ps) ? ps : [ps];
+        for (const s of specs) {
+          if (s?.price) {
+            monthlyPrice = parseFloat(s.price as string) || null;
+            if (monthlyPrice) break;
+          }
         }
-        if (!monthlyPrice) {
-          const lp = offers.lowPrice as string | undefined;
-          if (lp) monthlyPrice = parseFloat(lp) || null;
-        }
+        if (monthlyPrice) break;
+        const lp = offer.lowPrice as string | undefined;
+        if (lp) { monthlyPrice = parseFloat(lp) || null; if (monthlyPrice) break; }
       }
     } catch { /* ignore */ }
   }
@@ -143,8 +148,23 @@ function extractProductName(html: string): string | null {
 }
 
 function extractProductAddress(html: string): string | null {
+  const addrTag = html.match(/<address>([^<]+)<\/address>/i);
+  if (addrTag) return addrTag[1].trim();
   const m = html.match(/Address:\s*([^<]+?)<\//i);
   return m ? m[1].trim() : null;
+}
+
+async function geocodeNominatim(address: string): Promise<{ lat: number; lng: number } | null> {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=ca&limit=1`;
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": "VancouverParkingFinder/1.0" } });
+    if (!res.ok) return null;
+    const data = await res.json() as Array<{ lat: string; lon: string }>;
+    if (data.length === 0) return null;
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  } catch {
+    return null;
+  }
 }
 
 function guessHours(): Record<string, { open: string; close: string }> {
@@ -413,6 +433,50 @@ export const imparkScraper: Scraper = {
         console.log("[impark] Unmatched slugs written to data/impark-unmatched-products.json");
       } catch { /* non-fatal if fs unavailable */ }
     }
+
+    // Phase 4: Geocode unmatched Vancouver slugs via Nominatim
+    let geocoded = 0;
+    for (const slug of unmatchedVanSlugs) {
+      if (usedSlugs.has(slug)) continue;
+      await sleep(1500);
+      const url = `https://imparknow.com/ca/product/${slug}/`;
+      console.log(`[impark] Geocoding ${slug}...`);
+
+      let html: string;
+      try { html = await fetchWithRetry(url); } catch { continue; }
+      const { hourlyRate, monthlyPrice } = extractPricing(html);
+      if (!hourlyRate && !monthlyPrice) continue;
+
+      const productName = extractProductName(html) || slug;
+      const productAddress = extractProductAddress(html);
+      const address = productAddress || productName || slug;
+      const fullQuery = address.includes("Vancouver") ? address : `${address}, Vancouver, BC`;
+      const coords = await geocodeNominatim(fullQuery);
+      if (!coords) {
+        console.log(`[impark]   Could not geocode ${slug}`);
+        continue;
+      }
+
+      usedSlugs.add(slug);
+      const rates: RawLot["rates"] = [];
+      if (hourlyRate) rates.push({ type: "hourly", label: "Hourly", amount: hourlyRate, hourlyRate });
+      if (monthlyPrice) rates.push({ type: "flat", label: "Monthly", amount: monthlyPrice });
+      lots.push({
+        id: `impark-${slug}`,
+        provider: "impark",
+        name: productName,
+        address: productAddress || slug,
+        lat: coords.lat,
+        lng: coords.lng,
+        rates,
+        features: { ev: false, covered: false },
+        hours: guessHours(),
+        sourceUrl: `https://imparknow.com/ca/product/${slug}/`,
+      });
+      geocoded++;
+      console.log(`[impark] ✓ ${productName} — $${hourlyRate || monthlyPrice}/unit (geocoded)`);
+    }
+    if (geocoded > 0) console.log(`[impark] Geocoded ${geocoded} lots via Nominatim`);
 
     console.log(`[impark] Done. ${lots.length} Impark lots with pricing`);
     return { provider: "impark", timestamp: new Date().toISOString(), data: lots };
