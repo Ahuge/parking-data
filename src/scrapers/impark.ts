@@ -283,6 +283,7 @@ export const imparkScraper: Scraper = {
         rates,
         features: { ev: false, covered: osm.parkingType === "underground" || osm.parkingType === "multi-storey" },
         hours: guessHours(),
+        sourceUrl: `https://imparknow.com/ca/product/${slug}/`,
       });
       console.log(`[impark] ✓ ${productName} — $${hourlyRate}/hr`);
     }
@@ -326,10 +327,26 @@ export const imparkScraper: Scraper = {
           rates,
           features: { ev: false, covered: osmMatch.parkingType === "underground" || osmMatch.parkingType === "multi-storey" },
           hours: guessHours(),
+          sourceUrl: `https://imparknow.com/ca/product/${slug}/`,
         });
         console.log(`[impark] ✓ ${productName} — $${hourlyRate}/hr (reverse match)`);
       }
     }
+
+    // Dedup by OSM coordinates (keep first match per coordinate pair)
+    const seenCoords = new Set<string>();
+    const deduped: typeof lots = [];
+    for (const l of lots) {
+      const key = `${l.lat.toFixed(4)},${l.lng.toFixed(4)}`;
+      if (seenCoords.has(key)) continue;
+      seenCoords.add(key);
+      deduped.push(l);
+    }
+    if (deduped.length < lots.length) {
+      console.log(`[impark] Deduped ${lots.length - deduped.length} lots sharing OSM coordinates`);
+    }
+    lots.length = 0;
+    lots.push(...deduped);
 
     // Phase 3: Identify unmatched Vancouver-area slugs for future mapping
     const vanKeywords = new Set([

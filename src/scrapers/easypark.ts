@@ -178,6 +178,7 @@ export const easyParkScraper: Scraper = {
     console.log(`[easypark] Found ${vanMarkers.length} Vancouver lots out of ${allMarkers.length} total`);
 
     const rawLots: RawLot[] = [];
+    const idCounts = new Map<string, number>();
 
     for (let i = 0; i < vanMarkers.length; i++) {
       const m = vanMarkers[i];
@@ -187,8 +188,13 @@ export const easyParkScraper: Scraper = {
         const detailHtml = await fetchWithRetry(`${BASE}/find-parking/locations-and-lot-information/lot-details/${m.locurl}`);
         const rates = parseRates(detailHtml);
 
+        const baseId = `easypark-${m.LotNumber}`;
+        const count = idCounts.get(baseId) || 0;
+        const id = count === 0 ? baseId : `${baseId}-${count + 1}`;
+        idCounts.set(baseId, count + 1);
+
         const lot: RawLot = {
-          id: `easypark-${m.LotNumber}`,
+          id,
           provider: "easypark",
           name: m.title || m.street,
           address: `${m.street}, ${m.city}, ${m.state}`,
@@ -197,6 +203,7 @@ export const easyParkScraper: Scraper = {
           rates,
           features: parseFeatures(m.features),
           hours: defaultHours(),
+          sourceUrl: `${BASE}/find-parking/locations-and-lot-information/lot-details/${m.locurl}`,
         };
 
         rawLots.push(lot);

@@ -38,17 +38,21 @@ interface RateCriteria {
   ISOLangCode: string;
 }
 
-interface RateResponse {
-  rateItems?: RateItem[];
-  ExceptionDetail?: { Message: string };
+interface IndigoRateItem {
+  LocationId: string;
+  LocationName: string;
+  RateName: string;
+  Amount: number;
+  TaxFreeAmount: number;
+  DisplayRateType: string;
+  ProductType: string;
+  FromDate: string;
+  ToDate: string;
 }
 
-interface RateItem {
-  lotId: string;
-  description: string;
-  amount: number;
-  durationType: string;
-  productType: string;
+interface IndigoRateResponse {
+  d?: string;
+  ExceptionDetail?: { Message: string };
 }
 
 function buildLocationsUrl(page: number, size: number = 100): string {
@@ -123,43 +127,97 @@ function rawLotsFromSalesforce(salesforceLots: SalesforceLot[]): RawLot[] {
   });
 }
 
-async function fetchRates(grsIds: string[]): Promise<RateItem[]> {
-  if (grsIds.length === 0) return [];
+async function fetchRates(grsIds: string[]): Promise<Map<string, RawRate[]>> {
+  const rateMap = new Map<string, RawRate[]>();
+  if (grsIds.length === 0) return rateMap;
 
   const now = new Date();
-  const begin = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:00:0`;
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+  const dateStr = `${now.getFullYear()}/${pad2(now.getMonth() + 1)}/${pad2(now.getDate())}`;
+  const begin = `${dateStr} ${pad2(now.getHours())}:${pad2(now.getMinutes())}:0`;
   const end = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-  const endStr = `${end.getFullYear()}/${String(end.getMonth() + 1).padStart(2, "0")}/${String(end.getDate()).padStart(2, "0")} ${String(end.getHours()).padStart(2, "0")}:00:0`;
+  const endStr = `${end.getFullYear()}/${pad2(end.getMonth() + 1)}/${pad2(end.getDate())} ${pad2(end.getHours())}:${pad2(end.getMinutes())}:0`;
 
-  const body: RateRequest = {
+  const body = {
     Criteria: grsIds.map((grsId) => ({
       LotId: grsId,
       ParkingBeginDateTime: begin,
       ParkingEndDateTime: endStr,
       SalesChannelKey: "Web",
-      CustomerFlowType: "RAD",
+      CustomerFlowType: "PNW",
       ISOLangCode: "EN",
     })),
+    SalesChannelKey: "Web",
+    ISOLangCode: "EN",
   };
 
   const res = await fetch(RATES_API, {
     method: "POST",
-    headers: { "User-Agent": "vancouver-parking/1.0", "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": "7819b70f-2f42-41b0-9c9d-3aa89b9d0ba0",
+      "x-tenant": "indigo-ext",
+      "accept-language": "EN",
+      "User-Agent": "Mozilla/5.0",
+    },
     body: JSON.stringify(body),
   });
 
   if (!res.ok) {
     console.log(`[indigo] Rates API HTTP ${res.status}`);
-    return [];
+    return rateMap;
   }
 
-  const data: RateResponse = await res.json();
+  const data: IndigoRateResponse = await res.json();
   if (data.ExceptionDetail) {
     console.log(`[indigo] Rates API: ${data.ExceptionDetail.Message}`);
-    return [];
+    return rateMap;
   }
 
-  return data.rateItems || [];
+  if (!data.d) return rateMap;
+
+  let lotResults: Record<string, any>[];
+  try {
+    lotResults = JSON.parse(data.d);
+  } catch {
+    return rateMap;
+  }
+
+  for (const lotResult of lotResults) {
+    const lotId = lotResult.eDataLocationId || lotResult.LocationId;
+    if (!lotId) continue;
+    const rateList: any[] = lotResult.DisplayRateList || [];
+    const rates: RawRate[] = [];
+
+    for (const rateItem of rateList) {
+      const name = rateItem.RateName || "";
+      const amount = rateItem.TaxFreeAmount || rateItem.Amount || 0;
+      const type = rateItem.DisplayRateType || "";
+
+      if (amount <= 0) continue;
+
+      // TMD = time-based (hourly), convert to per-hour rate
+      if (type === "TMD") {
+        const durationHours = parseDuration(rateItem.FromDate || "", rateItem.ToDate || "");
+        const hourly = durationHours > 0 ? Math.round((amount / durationHours) * 100) / 100 : amount;
+        rates.push({ type: "hourly", label: name, amount: hourly, hourlyRate: hourly });
+      } else {
+        // FAP = Fixed Access Pass (flat daily), EVT = Event, etc.
+        rates.push({ type: "flat", label: name, amount });
+      }
+    }
+
+    if (rates.length > 0) rateMap.set(lotId, rates);
+  }
+
+  return rateMap;
+}
+
+function parseDuration(from: string, to: string): number {
+  const f = new Date(from);
+  const t = new Date(to);
+  const ms = t.getTime() - f.getTime();
+  return ms > 0 ? ms / (1000 * 60 * 60) : 1;
 }
 
 function defaultHours(): Record<string, { open: string; close: string }> {
@@ -195,19 +253,8 @@ export const indigoScraper: Scraper = {
     const grsIds = rawLots.map((l) => l.externalId).filter(Boolean) as string[];
     if (grsIds.length > 0) {
       console.log(`[indigo]   fetching rates for ${grsIds.length} lots...`);
-      const rateItems = await fetchRates(grsIds);
-      console.log(`[indigo]   rates returned: ${rateItems.length}`);
-
-      const rateMap = new Map<string, RawRate[]>();
-      for (const item of rateItems) {
-        if (!rateMap.has(item.lotId)) rateMap.set(item.lotId, []);
-        rateMap.get(item.lotId)!.push({
-          type: item.durationType === "FLAT" ? "flat" : "hourly",
-          label: item.description,
-          amount: item.amount,
-          hourlyRate: item.durationType !== "FLAT" ? item.amount : undefined,
-        });
-      }
+      const rateMap = await fetchRates(grsIds);
+      console.log(`[indigo]   lots with rates: ${rateMap.size}`);
 
       for (const lot of rawLots) {
         if (lot.externalId && rateMap.has(lot.externalId)) {

@@ -53,6 +53,7 @@ export function normalize(rawLots: RawLot[]): ParkingData {
         source: raw.provider,
         confidence: 0.7,
         lastUpdated: now,
+        ...(raw.sourceUrl ? { sourceUrl: raw.sourceUrl } : {}),
       },
     };
 

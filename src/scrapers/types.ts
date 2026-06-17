@@ -11,6 +11,8 @@ export interface RawLot {
   hours: Record<string, { open: string; close: string }>;
   /** Provider-specific ID for rate lookups (e.g. Indigo grsId) */
   externalId?: string;
+  /** Link to booking/detail page on provider's site */
+  sourceUrl?: string;
 }
 
 export interface RawFeatures {
