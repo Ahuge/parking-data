@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-28T10:31:04.281Z",
+  "timestamp": "2026-06-29T12:35:33.328Z",
   "slugs": [
     "1045-howe-st",
     "601-waterfront-road-west",
@@ -21,7 +21,6 @@
     "5th-main",
     "303-main",
     "939-main-street",
-    "1012-robson-street",
     "2100-burrard-street",
     "alvin-hamilton-parkade",
     "executive-hotel-burnaby",
@@ -41,7 +40,6 @@
     "245-main-street",
     "surrey-central-business-park",
     "surrey-central",
-    "burnaby-centre",
     "vancouver-house",
     "south-granville-businesscentre",
     "1040-w-georgia-street-grosvenor-building",
@@ -58,18 +56,20 @@
     "1025-robson-street",
     "211-main-street",
     "1128-west-georgia-shangri-la",
-    "189-rupert-avenue",
     "416-main-street",
     "robson-fashion-park",
-    "840-howe-street-robson-court",
-    "1455-quebec-science-world",
-    "water-pioneer",
     "granville-island",
-    "the-waterfall-2nd-and-fir",
-    "waterfront-road",
     "victoria-general-hospital",
     "aquarius-parkade",
+    "burnaby-centre",
+    "189-rupert-avenue",
     "vancouver-convention-centre-w",
-    "waterfront-centre"
+    "the-waterfall-2nd-and-fir",
+    "waterfront-centre",
+    "waterfront-road",
+    "1012-robson-street",
+    "1455-quebec-science-world",
+    "840-howe-street-robson-court",
+    "water-pioneer"
   ]
 }
