@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-02T10:41:14.602Z",
+  "timestamp": "2026-07-03T10:38:55.743Z",
   "slugs": [
     "1045-howe-st",
     "601-waterfront-road-west",
@@ -31,7 +31,6 @@
     "205-main-powell-no-5-orange",
     "sheraton-vancouver-guildford",
     "900-howe-street",
-    "granville-and-10th",
     "robson-promenade",
     "910-mainland",
     "245-main-street",
@@ -42,7 +41,6 @@
     "helmcken-and-granville",
     "1610-1612-victoria-avenue",
     "renfrew-centre",
-    "sandman-on-davie",
     "yonge-richmond-centre",
     "18-main-street-east-ipcchami000041",
     "160-main-street-west-ipcchami000075",
@@ -58,18 +56,20 @@
     "1012-robson-street",
     "vancouver-house",
     "granville-island",
-    "water-pioneer",
     "54-water-street-south-ipcckitc000172",
     "executive-hotel-burnaby",
-    "waterfront-road",
     "main-mcdermot",
     "7-oaks-general-hospital",
     "1040-w-georgia-street-grosvenor-building",
     "rbc-place",
     "the-waterfall-2nd-and-fir",
-    "aquarius-parkade",
-    "840-howe-street-robson-court",
     "vancouver-convention-centre-w",
-    "1455-quebec-science-world"
+    "1455-quebec-science-world",
+    "water-pioneer",
+    "aquarius-parkade",
+    "sandman-on-davie",
+    "waterfront-road",
+    "granville-and-10th",
+    "840-howe-street-robson-court"
   ]
 }
