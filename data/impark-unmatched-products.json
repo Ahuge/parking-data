@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-04T10:13:25.624Z",
+  "timestamp": "2026-07-05T10:15:51.071Z",
   "slugs": [
     "1045-howe-st",
     "601-waterfront-road-west",
@@ -23,7 +23,6 @@
     "939-main-street",
     "2100-burrard-street",
     "alvin-hamilton-parkade",
-    "1125-davie-street",
     "1225-robson",
     "888-dunsmuir",
     "1033-davie-street",
@@ -56,20 +55,21 @@
     "main-mcdermot",
     "7-oaks-general-hospital",
     "1040-w-georgia-street-grosvenor-building",
-    "the-waterfall-2nd-and-fir",
     "water-pioneer",
     "sandman-on-davie",
-    "waterfront-road",
-    "840-howe-street-robson-court",
     "1128-west-georgia-shangri-la",
     "189-rupert-avenue",
     "rbc-place",
+    "renfrew-centre",
+    "1012-robson-street",
+    "surrey-central",
     "granville-and-10th",
     "aquarius-parkade",
-    "renfrew-centre",
+    "the-waterfall-2nd-and-fir",
+    "840-howe-street-robson-court",
     "1455-quebec-science-world",
-    "1012-robson-street",
-    "vancouver-convention-centre-w",
-    "surrey-central"
+    "1125-davie-street",
+    "waterfront-road",
+    "vancouver-convention-centre-w"
   ]
 }
