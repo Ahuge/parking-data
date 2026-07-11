@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-10T10:57:08.977Z",
+  "timestamp": "2026-07-11T09:32:27.073Z",
   "slugs": [
     "1045-howe-st",
     "601-waterfront-road-west",
@@ -39,10 +39,8 @@
     "160-main-street-west-ipcchami000075",
     "1025-robson-street",
     "416-main-street",
-    "victoria-general-hospital",
     "burnaby-centre",
     "54-water-street-south-ipcckitc000172",
-    "executive-hotel-burnaby",
     "1040-w-georgia-street-grosvenor-building",
     "sandman-on-davie",
     "renfrew-centre",
@@ -50,12 +48,9 @@
     "1125-davie-street",
     "main-mcdermot",
     "helmcken-and-granville",
-    "rbc-place",
     "granville-and-10th",
     "7-oaks-general-hospital",
-    "granville-island",
     "surrey-central",
-    "189-rupert-avenue",
     "robson-fashion-park",
     "vancouver-house",
     "211-main-street",
@@ -68,8 +63,13 @@
     "3480-gilmore",
     "waterfront-road",
     "900-howe-street",
+    "189-rupert-avenue",
+    "executive-hotel-burnaby",
+    "victoria-general-hospital",
+    "granville-island",
     "1455-quebec-science-world",
     "aquarius-parkade",
+    "rbc-place",
     "waterfront-centre"
   ]
 }
