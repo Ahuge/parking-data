@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-23T10:25:40.133Z",
+  "timestamp": "2026-07-24T10:19:59.288Z",
   "slugs": [
     "1045-howe-st",
     "601-waterfront-road-west",
@@ -34,8 +34,6 @@
     "160-main-street-west-ipcchami000075",
     "1025-robson-street",
     "1012-robson-street",
-    "1125-davie-street",
-    "surrey-central",
     "robson-fashion-park",
     "vancouver-house",
     "900-howe-street",
@@ -48,7 +46,6 @@
     "3480-gilmore",
     "5th-main",
     "sandman-on-davie",
-    "189-rupert-avenue",
     "840-howe-street-robson-court",
     "the-waterfall-2nd-and-fir",
     "7-oaks-general-hospital",
@@ -63,13 +60,16 @@
     "victoria-general-hospital",
     "burnaby-centre",
     "helmcken-and-granville",
-    "water-pioneer",
     "1033-davie-street",
     "granville-island",
     "main-mcdermot",
     "211-main-street",
     "219-main-street",
     "aquarius-parkade",
+    "water-pioneer",
+    "surrey-central",
+    "189-rupert-avenue",
+    "1125-davie-street",
     "waterfront-centre",
     "vancouver-convention-centre-w"
   ]
