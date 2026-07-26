@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-25T09:46:22.055Z",
+  "timestamp": "2026-07-26T10:02:55.811Z",
   "slugs": [
     "1045-howe-st",
     "601-waterfront-road-west",
@@ -44,7 +44,6 @@
     "5th-main",
     "sandman-on-davie",
     "840-howe-street-robson-court",
-    "the-waterfall-2nd-and-fir",
     "7-oaks-general-hospital",
     "1128-west-georgia-shangri-la",
     "surrey-nvcc",
@@ -56,20 +55,21 @@
     "victoria-general-hospital",
     "burnaby-centre",
     "1033-davie-street",
-    "granville-island",
     "main-mcdermot",
     "211-main-street",
     "219-main-street",
-    "aquarius-parkade",
     "surrey-central",
     "189-rupert-avenue",
     "1125-davie-street",
     "water-pioneer",
     "granville-and-70th",
-    "rbc-place",
     "3480-gilmore",
     "helmcken-and-granville",
     "1025-robson-street",
+    "aquarius-parkade",
+    "granville-island",
+    "the-waterfall-2nd-and-fir",
+    "rbc-place",
     "waterfront-centre"
   ]
 }
