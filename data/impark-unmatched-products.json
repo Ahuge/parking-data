@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-03T12:38:03.293Z",
+  "timestamp": "2026-09-04T12:32:56.699Z",
   "slugs": [
     "601-waterfront-road-west",
     "1846-1854-marine-drive",
@@ -40,8 +40,6 @@
     "1100-granville-street",
     "205-main-powell-no-5-orange",
     "burnaby-centre",
-    "8100-granville-ave-richmond-place",
-    "245-main-street",
     "18-main-street-east-ipcchami000041",
     "hamilton-citizen-office",
     "160-main-street-west-ipcchami000075",
@@ -72,7 +70,6 @@
     "1033-davie-street",
     "4664-lougheed-highway",
     "vancouver-house",
-    "granville-island",
     "rbc-place",
     "surrey-central",
     "rosedale-on-robson-suite-hotel",
@@ -91,19 +88,22 @@
     "688-abbott-the-firenze",
     "1040-w-georgia-street-grosvenor-building",
     "surrey-nvcc",
-    "1600-lower-water-street",
-    "211-main-street",
     "219-main-street",
     "1025-robson-street",
     "189-rupert-avenue",
-    "840-howe-street-robson-court",
     "1125-davie-street",
-    "victoria-general-hospital",
     "aquarius-parkade",
     "6587-main-street",
     "111-dunsmuir-street",
+    "245-main-street",
+    "211-main-street",
+    "1600-lower-water-street",
+    "840-howe-street-robson-court",
+    "waterfront-road",
+    "granville-island",
     "waterfront-centre",
+    "victoria-general-hospital",
     "vancouver-convention-centre-w",
-    "waterfront-road"
+    "8100-granville-ave-richmond-place"
   ]
 }
